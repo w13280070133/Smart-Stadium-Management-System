@@ -1,4 +1,4 @@
-# 🏋️ 健身房智慧管理全栈平台
+# 🏋️ 健身房智慧管理系统
 
 ![Vue3](https://img.shields.io/badge/Frontend-Vue3-brightgreen) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-blue) ![MySQL](https://img.shields.io/badge/Database-MySQL-orange)
 
@@ -16,7 +16,11 @@
 
 ## 📸 运行预览
 
-> (在这里插入你的系统运行截图，可以直接把图片拖进 GitHub 的 Issue 里生成链接粘贴过来)
+### 会员端界面
+![会员端](image-1.png)
+
+### 管理端界面
+![管理端](image.png)
 
 ## 🛠 技术栈
 
@@ -29,8 +33,8 @@
 
 ### 1. 克隆项目
 ```bash
-git clone https://github.com/你的用户名/仓库名.git
-cd 仓库名
+git clone https://github.com/w13280070133/Smart-Stadium-Management-System.git
+cd Smart-Stadium-Management-System
 ```
 
 ### 2. 数据库初始化
@@ -65,7 +69,6 @@ npm run dev
 ### 5. 一键启动（Windows）
 直接运行 `start_gym_all.bat`，自动启动后端和两个前端。
 
-> **注意**：需先修改 `start_gym_all.bat` 中的 `BASE` 路径为你的项目实际路径。
 
 ## 🌐 访问地址
 
@@ -119,7 +122,3 @@ npm run dev
 - Python 3.12+
 - Node.js 16+
 - MySQL 8.0+
-
-## 📄 License
-
-MIT License
