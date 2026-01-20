@@ -115,7 +115,6 @@ npm run dev
 - 后端接口主要在 `backend/app/routers/` 目录
 - 管理端页面在 `admin-frontend/src/views/`
 - 会员端页面在 `member-frontend/src/views/`
-- 详细的业务逻辑和改动记录见 `项目总览.md`
 
 ## ⚙️ 环境要求
 
