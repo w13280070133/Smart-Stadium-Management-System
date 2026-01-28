@@ -1,312 +1,481 @@
 <template>
   <div class="dashboard">
-    <div class="page-header">
+    <!-- Page Header -->
+    <header class="page-header">
       <div>
-        <h2>📊 数据总览</h2>
-        <p class="sub-title">快速查看今日/本月预约、收入与会员数据，掌握最新预约和收支</p>
+        <h1>运营总览</h1>
+        <p class="subtitle">实时查看场馆运营数据</p>
       </div>
-    </div>
+      <div class="header-actions">
+        <el-button @click="refreshAll">
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
+        <el-button type="primary" @click="goReservations">管理预约</el-button>
+      </div>
+    </header>
 
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <el-card class="stat-card stat-blue" shadow="hover" :loading="loadingOverview">
-          <div class="label">今日预约数</div>
-          <div class="value">{{ overview?.today_reservations ?? 0 }}</div>
-          <div class="sub">今日新建的场地预约</div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card stat-green" shadow="hover" :loading="loadingOverview">
-          <div class="label">本月预约数</div>
-          <div class="value">{{ overview?.month_reservations ?? 0 }}</div>
-          <div class="sub">自然月累计预约数</div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card stat-orange" shadow="hover" :loading="loadingOverview">
-          <div class="label">今日收入（元）</div>
-          <div class="value">¥ {{ formatMoney(overview?.today_income ?? 0) }}</div>
-          <div class="sub">包含场地预约与商品售卖</div>
-        </el-card>
-      </el-col>
-      <el-col :span="6">
-        <el-card class="stat-card stat-purple" shadow="hover" :loading="loadingOverview">
-          <div class="label">本月收入（元）</div>
-          <div class="value">¥ {{ formatMoney(overview?.month_income ?? 0) }}</div>
-          <div class="sub">自然月累计收入</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Stats Grid -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-label">会员总数</div>
+        <div class="stat-value">{{ stats.memberCount }}</div>
+        <div class="stat-desc">当前有效会员</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">账户余额</div>
+        <div class="stat-value">¥ {{ formatMoney(stats.totalBalance) }}</div>
+        <div class="stat-desc">账户余额总额</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日预约</div>
+        <div class="stat-value">{{ stats.todayReservations }}</div>
+        <div class="stat-desc">待使用场地</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本月收入</div>
+        <div class="stat-value">¥ {{ formatMoney(stats.monthRevenue) }}</div>
+        <div class="stat-desc">累计营收</div>
+      </div>
+    </section>
 
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="12">
-        <el-card class="mini-card" shadow="hover" :loading="loadingOverview">
-          <div class="mini-title">会员总数</div>
-          <div class="mini-value">{{ overview?.member_count ?? 0 }}</div>
-          <div class="mini-sub">当前系统内有效会员人数</div>
-        </el-card>
-      </el-col>
-      <el-col :span="12">
-        <el-card class="mini-card" shadow="hover" :loading="loadingOverview">
-          <div class="mini-title">会员余额总额（元）</div>
-          <div class="mini-value">¥ {{ formatMoney(overview?.member_balance ?? 0) }}</div>
-          <div class="mini-sub">所有会员账户余额之和</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Charts Section -->
+    <section class="charts-section">
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>营收趋势</h3>
+          <span class="badge">近7日</span>
+        </div>
+        <div class="chart-container">
+          <VChart v-if="!loading" :option="revenueChartOption" autoresize />
+          <div v-else class="loading-placeholder">加载中...</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>预约分布</h3>
+          <span class="badge">按状态</span>
+        </div>
+        <div class="chart-container">
+          <VChart v-if="!loading" :option="reservationChartOption" autoresize />
+          <div v-else class="loading-placeholder">加载中...</div>
+        </div>
+      </div>
+    </section>
 
-    <el-row :gutter="20" class="lists-row">
-      <el-col :span="12">
-        <el-card class="list-card" shadow="hover" :loading="loadingReservations">
-          <div class="list-header">
-            <div class="title">最近预约</div>
-            <div class="tip">从场地预约记录中取最近 5 条</div>
+    <!-- Recent Activity -->
+    <section class="activity-section">
+      <div class="activity-card">
+        <div class="card-header">
+          <h3>最近预约</h3>
+          <el-button text size="small" @click="goReservations">查看全部</el-button>
+        </div>
+        <div class="activity-list">
+          <div v-for="item in recentReservations" :key="item.id" class="activity-item">
+            <div class="activity-time">{{ formatTime(item.start_time) }}</div>
+            <div class="activity-content">
+              <div class="activity-title">{{ item.court_name }}</div>
+              <div class="activity-sub">{{ item.member_name }}</div>
+            </div>
+            <el-tag :type="getStatusType(item.status)" size="small">{{ item.status }}</el-tag>
           </div>
+          <div v-if="recentReservations.length === 0" class="empty-state">暂无预约</div>
+        </div>
+      </div>
 
-          <el-table :data="latestReservations" size="small" v-if="latestReservations.length" border>
-            <el-table-column prop="court_name" label="场地" width="120" />
-            <el-table-column prop="member_name" label="会员" width="120">
-              <template #default="{ row }">
-                <span v-if="row.member_name">{{ row.member_name }}</span>
-                <span v-else class="text-muted">散客</span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="start_time" label="开始时间" width="160" />
-            <el-table-column prop="status" label="状态" width="80">
-              <template #default="{ row }">
-                <el-tag v-if="row.status === '已预约'" type="warning" size="small">已预约</el-tag>
-                <el-tag v-else-if="row.status === '进行中' || row.status === '使用中'" type="success" size="small">
-                  进行中
-                </el-tag>
-                <el-tag v-else-if="row.status === '已完成'" type="info" size="small">已完成</el-tag>
-                <el-tag v-else type="danger" size="small">已取消</el-tag>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <div v-else class="empty-text">暂无预约记录，可前往「场地预约」创建</div>
-        </el-card>
-      </el-col>
-
-      <el-col :span="12">
-        <el-card class="list-card" shadow="hover" :loading="loadingTransactions">
-          <div class="list-header">
-            <div class="title">最近收支记录</div>
-            <div class="tip">从会员收支记录中取最近 5 条</div>
+      <div class="activity-card">
+        <div class="card-header">
+          <h3>最近交易</h3>
+          <el-button text size="small" @click="goTransactions">查看全部</el-button>
+        </div>
+        <div class="activity-list">
+          <div v-for="item in recentTransactions" :key="item.id" class="activity-item">
+            <div class="activity-content">
+              <div class="activity-title">{{ item.type }}</div>
+              <div class="activity-sub">{{ item.member_name }}</div>
+            </div>
+            <div class="transaction-amount" :class="item.amount >= 0 ? 'positive' : 'negative'">
+              {{ item.amount >= 0 ? '+' : '' }}¥ {{ formatMoney(Math.abs(item.amount)) }}
+            </div>
           </div>
-
-          <el-table :data="latestTransactions" size="small" v-if="latestTransactions.length" border>
-            <el-table-column prop="member_name" label="会员" width="120" />
-            <el-table-column prop="type" label="类型" width="90" />
-            <el-table-column prop="amount" label="金额（元）" width="110">
-              <template #default="{ row }">
-                <span :class="row.amount >= 0 ? 'text-income' : 'text-expense'">
-                  {{ row.amount >= 0 ? '+' : '' }}{{ formatMoney(row.amount) }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="balance_after" label="变动后余额" width="120">
-              <template #default="{ row }">¥ {{ formatMoney(row.balance_after) }}</template>
-            </el-table-column>
-            <el-table-column prop="created_at" label="时间" width="160" />
-          </el-table>
-
-          <div v-else class="empty-text">暂无收支记录</div>
-        </el-card>
-      </el-col>
-    </el-row>
+          <div v-if="recentTransactions.length === 0" class="empty-state">暂无交易</div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
-import http from "../utils/http";
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { Refresh } from '@element-plus/icons-vue'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart, PieChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
+import VChart from 'vue-echarts'
+import http from '../utils/http'
 
-interface OverviewResp {
-  today_reservations: number;
-  month_reservations: number;
-  today_income: number;
-  month_income: number;
-  member_count: number;
-  member_balance: number;
+use([CanvasRenderer, LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent])
+
+const router = useRouter()
+const loading = ref(false)
+
+const stats = ref({
+  memberCount: 0,
+  totalBalance: 0,
+  todayReservations: 0,
+  monthRevenue: 0
+})
+
+const recentReservations = ref<any[]>([])
+const recentTransactions = ref<any[]>([])
+const revenueData = ref<any[]>([])
+const reservationStats = ref<any[]>([])
+
+const formatMoney = (val: number) => {
+  return (val || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-interface Reservation {
-  court_name: string;
-  member_name: string | null;
-  start_time: string;
-  status: string;
+const formatTime = (time: string) => {
+  if (!time) return ''
+  return time.replace('T', ' ').slice(0, 16)
 }
 
-interface Transaction {
-  member_name: string;
-  type: string;
-  amount: number;
-  balance_after: number;
-  created_at: string;
+const getStatusType = (status: string) => {
+  const map: Record<string, string> = {
+    '待使用': 'warning',
+    '已完成': 'success',
+    '已取消': 'info'
+  }
+  return map[status] || 'info'
 }
 
-const overview = ref<OverviewResp | null>(null);
-const latestReservations = ref<Reservation[]>([]);
-const latestTransactions = ref<Transaction[]>([]);
-const loadingOverview = ref(false);
-const loadingReservations = ref(false);
-const loadingTransactions = ref(false);
+const revenueChartOption = computed(() => ({
+  grid: { top: 20, right: 20, bottom: 30, left: 60 },
+  xAxis: {
+    type: 'category',
+    data: revenueData.value.map(d => d.date),
+    axisLine: { lineStyle: { color: '#E5E5EA' } },
+    axisLabel: { color: '#86868B', fontSize: 12 }
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: { show: false },
+    splitLine: { lineStyle: { color: '#F2F2F7' } },
+    axisLabel: { color: '#86868B', fontSize: 12, formatter: (v: number) => `¥${v}` }
+  },
+  tooltip: { trigger: 'axis' },
+  series: [{
+    type: 'line',
+    data: revenueData.value.map(d => d.amount),
+    smooth: true,
+    lineStyle: { color: '#007AFF', width: 2 },
+    areaStyle: { color: 'rgba(0, 122, 255, 0.1)' },
+    itemStyle: { color: '#007AFF' }
+  }]
+}))
 
-const formatMoney = (v: unknown) => {
-  const num = Number(v);
-  if (Number.isNaN(num)) return "0.00";
-  return num.toFixed(2);
-};
+const reservationChartOption = computed(() => ({
+  tooltip: { trigger: 'item' },
+  legend: { bottom: 0, textStyle: { color: '#86868B', fontSize: 12 } },
+  series: [{
+    type: 'pie',
+    radius: ['50%', '70%'],
+    center: ['50%', '45%'],
+    data: reservationStats.value,
+    label: { show: false },
+    itemStyle: {
+      borderRadius: 4,
+      borderColor: '#fff',
+      borderWidth: 2
+    }
+  }]
+}))
 
-const loadOverview = async () => {
-  loadingOverview.value = true;
+const loadStats = async () => {
   try {
-    const res = await http.get<OverviewResp>("/reports/overview");
-    overview.value = res.data;
-  } catch (err) {
-    console.error(err);
-    ElMessage.error("获取数据总览失败");
-  } finally {
-    loadingOverview.value = false;
-  }
-};
+    const [membersRes, reservationsRes, transactionsRes] = await Promise.all([
+      http.get('/members', { params: { page_size: 1000 } }),
+      http.get('/court-reservations'),
+      http.get('/member-transactions', { params: { page_size: 100 } })
+    ])
 
-const loadLatestReservations = async () => {
-  loadingReservations.value = true;
-  try {
-    const res = await http.get<any[]>("/court-reservations");
-    const list = res.data || [];
-    latestReservations.value = list.slice(0, 5);
-  } catch (err) {
-    console.error(err);
-    ElMessage.error("获取预约列表失败");
-  } finally {
-    loadingReservations.value = false;
-  }
-};
+    const members = membersRes.data?.items || membersRes.data || []
+    const memberTotal = membersRes.data?.total ?? members.length
+    const reservations = reservationsRes.data || []
+    const transactions = transactionsRes.data?.items || transactionsRes.data || []
 
-const loadLatestTransactions = async () => {
-  loadingTransactions.value = true;
-  try {
-    const res = await http.get<any[]>("/member-transactions");
-    const list = res.data || [];
-    latestTransactions.value = list.slice(0, 5);
-  } catch (err) {
-    console.error(err);
-    ElMessage.error("获取收支记录失败");
-  } finally {
-    loadingTransactions.value = false;
+    // Stats
+    stats.value.memberCount = memberTotal
+    stats.value.totalBalance = members.reduce((sum: number, m: any) => sum + (m.balance || 0), 0)
+    
+    const today = new Date().toISOString().slice(0, 10)
+    stats.value.todayReservations = reservations.filter((r: any) => 
+      r.start_time?.startsWith(today) && r.status === '待使用'
+    ).length
+
+    const currentMonth = new Date().toISOString().slice(0, 7)
+    stats.value.monthRevenue = transactions
+      .filter((t: any) => t.created_at?.startsWith(currentMonth) && t.amount > 0)
+      .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+
+    // Recent reservations
+    recentReservations.value = reservations.slice(0, 5)
+
+    // Recent transactions
+    recentTransactions.value = transactions.slice(0, 5)
+
+    // Reservation stats for pie chart
+    const statusCount: Record<string, number> = {}
+    reservations.forEach((r: any) => {
+      statusCount[r.status] = (statusCount[r.status] || 0) + 1
+    })
+    reservationStats.value = Object.entries(statusCount).map(([name, value]) => ({
+      name,
+      value,
+      itemStyle: { color: name === '待使用' ? '#FF9500' : name === '已完成' ? '#34C759' : '#86868B' }
+    }))
+
+    // Revenue trend (last 7 days)
+    const last7Days: any[] = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().slice(0, 10)
+      const dayTotal = transactions
+        .filter((t: any) => t.created_at?.startsWith(dateStr) && t.amount > 0)
+        .reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+      last7Days.push({ date: dateStr.slice(5), amount: dayTotal })
+    }
+    revenueData.value = last7Days
+
+  } catch (e) {
+    console.error('Failed to load dashboard data:', e)
   }
-};
+}
+
+const refreshAll = () => {
+  loading.value = true
+  loadStats().finally(() => { loading.value = false })
+}
+
+const goReservations = () => router.push('/court-reservations')
+const goTransactions = () => router.push('/member-transactions')
 
 onMounted(() => {
-  loadOverview();
-  loadLatestReservations();
-  loadLatestTransactions();
-});
+  refreshAll()
+})
 </script>
 
 <style scoped>
 .dashboard {
-  padding: 16px 24px 24px;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1D1D1F;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: #86868B;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Stats Section */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #86868B;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1D1D1F;
+  margin-bottom: 4px;
+}
+
+.stat-desc {
+  font-size: 12px;
+  color: #AEAEB2;
+}
+
+/* Charts Section */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1D1D1F;
+  margin: 0;
+}
+
+.badge {
+  font-size: 12px;
+  color: #007AFF;
+  background: #E6F2FF;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.chart-container {
+  height: 240px;
+}
+
+.loading-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #86868B;
+}
+
+/* Activity Section */
+.activity-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .activity-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+.activity-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.activity-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.page-header {
+
+.activity-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-.sub-title {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-.stats-row {
-  margin-top: 8px;
-}
-.stat-card {
-  border-radius: 16px;
-  color: #0f172a;
-}
-.stat-card .label {
-  font-size: 13px;
-  color: #6b7280;
-}
-.stat-card .value {
-  margin-top: 6px;
-  font-size: 24px;
-  font-weight: 600;
-}
-.stat-card .sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #94a3b8;
-}
-.stat-blue {
-  background: linear-gradient(135deg, #e0f2fe, #eff6ff);
-}
-.stat-green {
-  background: linear-gradient(135deg, #dcfce7, #f0fdf4);
-}
-.stat-orange {
-  background: linear-gradient(135deg, #ffedd5, #fff7ed);
-}
-.stat-purple {
-  background: linear-gradient(135deg, #ede9fe, #faf5ff);
-}
-.mini-card {
-  border-radius: 16px;
-}
-.mini-title {
-  font-size: 13px;
-  color: #6b7280;
-}
-.mini-value {
-  margin-top: 6px;
-  font-size: 22px;
-  font-weight: 600;
-  color: #111827;
-}
-.mini-sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #9ca3af;
-}
-.lists-row {
-  margin-top: 12px;
-}
-.list-card {
-  border-radius: 16px;
-}
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.list-header .title {
-  font-weight: 600;
-}
-.list-header .tip {
-  font-size: 12px;
-  color: #9ca3af;
-}
-.empty-text {
+  gap: 12px;
   padding: 12px;
+  background: #F9F9F9;
+  border-radius: 8px;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: #86868B;
+  min-width: 100px;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1D1D1F;
+}
+
+.activity-sub {
+  font-size: 12px;
+  color: #86868B;
+  margin-top: 2px;
+}
+
+.transaction-amount {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.transaction-amount.positive {
+  color: #34C759;
+}
+
+.transaction-amount.negative {
+  color: #FF3B30;
+}
+
+.empty-state {
   text-align: center;
-  color: #9ca3af;
-}
-.text-income {
-  color: #16a34a;
-}
-.text-expense {
-  color: #dc2626;
-}
-.text-muted {
-  color: #9ca3af;
+  padding: 32px;
+  color: #86868B;
+  font-size: 14px;
 }
 </style>

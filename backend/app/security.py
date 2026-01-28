@@ -4,7 +4,7 @@
 提供密码哈希、JWT Token 生成和验证等安全相关功能。
 使用 PBKDF2-SHA256 算法进行密码哈希，使用 JWT 进行用户身份认证。
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import HTTPException
@@ -69,8 +69,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
     """
     to_encode = data.copy()
-    # 设置 Token 过期时间
-    expire = datetime.utcnow() + (
+    # 设置 Token 过期时间（使用时区感知的 UTC 时间）
+    expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})

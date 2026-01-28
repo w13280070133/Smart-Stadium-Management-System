@@ -406,8 +406,9 @@ const loadCourts = async () => {
 
 const loadMembers = async () => {
   try {
-    const res = await http.get<any[]>("/members");
-    memberOptions.value = (res.data || []).map((m: any) => ({ id: m.id, name: m.name, phone: m.phone }));
+    const res = await http.get<any>("/members", { params: { page_size: 1000 } });
+    const members = res.data?.items || res.data || [];
+    memberOptions.value = members.map((m: any) => ({ id: m.id, name: m.name, phone: m.phone }));
   } catch (err) {
     console.error(err);
     ElMessage.error("获取会员列表失败");
@@ -604,6 +605,7 @@ const loadReservationRules = async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -616,12 +618,13 @@ const loadReservationRules = async () => {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 
 .sub-title {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .stat-row {
@@ -630,10 +633,10 @@ const loadReservationRules = async () => {
 
 .stat-card {
   position: relative;
-  border-radius: 18px;
+  border-radius: 12px;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #eef2ff 0%, #f9fafb 100%);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -648,25 +651,25 @@ const loadReservationRules = async () => {
   bottom: 12px;
   width: 4px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #38bdf8, #6366f1);
+  background: #007AFF;
 }
 
 .stat-row .el-col:nth-child(2) .stat-card::before {
-  background: linear-gradient(180deg, #22c55e, #16a34a);
+  background: #34C759;
 }
 
 .stat-row .el-col:nth-child(3) .stat-card::before {
-  background: linear-gradient(180deg, #f97316, #e11d48);
+  background: #FF9500;
 }
 
 .stat-row .el-col:nth-child(4) .stat-card::before {
-  background: linear-gradient(180deg, #a855f7, #6366f1);
+  background: #AF52DE;
 }
 
 .stat-label {
   position: relative;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
   margin-bottom: 4px;
 }
 
@@ -674,36 +677,38 @@ const loadReservationRules = async () => {
   position: relative;
   font-size: 26px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
   letter-spacing: 0.5px;
 }
 
 .filter-card {
-  border-radius: 16px;
-  border: none;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .card {
-  border-radius: 20px;
-  border: none;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .empty-text {
   padding: 16px;
   text-align: center;
   font-size: 13px;
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .el-dropdown-link {
   cursor: pointer;
-  color: #409eff;
+  color: #007AFF;
   display: inline-flex;
   align-items: center;
 }
 
 .text-muted {
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .order-wrapper {
@@ -714,12 +719,14 @@ const loadReservationRules = async () => {
 
 .order-no {
   font-size: 13px;
-  color: #111827;
+  color: #1D1D1F;
   font-weight: 500;
 }
 
 .rules-alert {
-  border-radius: 18px;
+  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.08);
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 .rules-wrapper {
@@ -730,7 +737,7 @@ const loadReservationRules = async () => {
 
 .rules-title {
   font-weight: 600;
-  color: #0f172a;
+  color: #1D1D1F;
 }
 
 .rules-tags {

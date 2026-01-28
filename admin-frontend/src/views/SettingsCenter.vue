@@ -752,6 +752,7 @@ onMounted(() => {
 <style scoped>
 .settings-page {
   padding: 16px 24px 24px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -761,21 +762,28 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+.page-header h2 {
+  margin: 0;
+  color: #1D1D1F;
+}
+
 .sub-title {
   margin: 4px 0 0;
-  color: #909399;
+  color: #86868B;
   font-size: 13px;
 }
 
 .card {
   margin-bottom: 16px;
-  border-radius: 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
 }
 
 .form {
@@ -789,20 +797,20 @@ onMounted(() => {
 .section-title {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: #1D1D1F;
   margin-bottom: 8px;
 }
 
 .section-desc {
   font-size: 12px;
-  color: #6b7280;
+  color: #86868B;
   margin-bottom: 12px;
 }
 
 .tip {
   margin-left: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #AEAEB2;
 }
 
 .checkbox-item {

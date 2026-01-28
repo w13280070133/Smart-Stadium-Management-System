@@ -116,70 +116,89 @@ async function handleLogin() {
 </script>
 
 <style scoped>
+/* ========== Apple iOS 风格登录页 ========== */
 .login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top, #f5f5f7, #e5e7eb);
+  background: #F2F2F7;
 }
+
 .login-card {
-  width: 420px;
-  padding: 40px 36px 32px;
-  border-radius: 28px;
-  background: #ffffff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15);
+  width: 380px;
+  padding: 40px 32px 32px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
+
 .brand {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 8px;
 }
+
 .logo-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0071e3, #00bcd4);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #007AFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 22px;
   color: #fff;
 }
+
 .brand-text h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
+  letter-spacing: -0.02em;
 }
+
 .brand-text p {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
+
 .login-actions {
-  margin-top: 12px;
+  margin-top: 8px;
 }
+
 .login-button {
   width: 100%;
-  border-radius: 999px;
-  font-size: 15px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: 500;
+  background: #007AFF;
+  border: none;
+  transition: background 0.2s;
 }
+
+.login-button:hover {
+  background: #0066D6;
+}
+
 .error-text {
   margin-top: 12px;
-  font-size: 13px;
-  color: #ef4444;
+  font-size: 14px;
+  color: #FF3B30;
   text-align: center;
 }
+
 .footer-text {
   margin-top: 4px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #86868B;
   text-align: center;
 }
 </style>

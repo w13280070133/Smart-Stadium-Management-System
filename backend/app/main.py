@@ -54,6 +54,8 @@ from .routers import (
     training_schedules,
     training_enrollments,
     training_attendances,
+    # AI Agent 模块
+    agent_chat,
 )
 
 app = FastAPI(
@@ -109,6 +111,9 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(member_auth.router, prefix="/api")
 app.include_router(member_portal.router, prefix="/api")
 app.include_router(member_cards.router, prefix="/api")
+
+# AI Agent 模块
+app.include_router(agent_chat.router, prefix="/api")
 
 # 教培模块（管理端）
 app.include_router(coaches.router, prefix="/api")

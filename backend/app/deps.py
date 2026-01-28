@@ -151,7 +151,9 @@ def get_current_member(token: str = Depends(member_oauth2_scheme)) -> Dict[str, 
 # ========== 基于角色的访问控制（RBAC）==========
 # 角色配置缓存，避免频繁查询数据库
 # 缓存有效期 60 秒，60 秒后自动重新加载最新配置
+from threading import Lock
 _roles_cache: Dict[str, Any] = {"data": None, "ts": 0}
+_roles_cache_lock = Lock()
 
 
 def _load_roles_config() -> List[Dict[str, Any]]:
@@ -160,6 +162,7 @@ def _load_roles_config() -> List[Dict[str, Any]]:
     
     从数据库 system_settings 表读取角色配置（JSON 格式）。
     使用 60 秒缓存减少数据库查询，提高性能。
+    添加线程锁保护，确保多线程安全。
     
     角色配置示例：
     [
@@ -182,9 +185,10 @@ def _load_roles_config() -> List[Dict[str, Any]]:
     Returns:
         list: 角色配置列表，如果配置不存在则返回默认配置
     """
-    now = time.time()
-    if _roles_cache["data"] and now - _roles_cache["ts"] < 60:
-        return _roles_cache["data"]
+    with _roles_cache_lock:
+        now = time.time()
+        if _roles_cache["data"] and now - _roles_cache["ts"] < 60:
+            return _roles_cache["data"]
     db = get_db()
     cursor = db.cursor(dictionary=True)
     try:

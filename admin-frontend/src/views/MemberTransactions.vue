@@ -270,8 +270,9 @@ const formatAmount = (v: unknown) => {
 // 加载会员列表
 const loadMembers = async () => {
   try {
-    const res = await http.get<any[]>("/members");
-    memberOptions.value = (res.data || []).map((m: any) => ({
+    const res = await http.get<any>("/members", { params: { page_size: 1000 } });
+    const members = res.data?.items || res.data || [];
+    memberOptions.value = members.map((m: any) => ({
       id: m.id,
       name: m.name,
       phone: m.phone,
@@ -375,6 +376,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -383,16 +385,22 @@ onMounted(async () => {
   align-items: center;
 }
 
+.page-header h2 {
+  color: #1D1D1F;
+}
+
 .sub-title {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .filter-card,
 .toolbar-card,
 .table-card {
-  border-radius: 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .filter-row {
@@ -410,21 +418,21 @@ onMounted(async () => {
 .balance-text {
   margin-left: auto;
   font-size: 14px;
-  color: #4b5563;
+  color: #1D1D1F;
 }
 
 .money {
-  color: #10b981;
+  color: #34C759;
   font-weight: 600;
 }
 
 .money-plus {
-  color: #16a34a;
+  color: #34C759;
   font-weight: 600;
 }
 
 .money-minus {
-  color: #ef4444;
+  color: #FF3B30;
   font-weight: 600;
 }
 
@@ -432,15 +440,16 @@ onMounted(async () => {
   padding: 16px;
   text-align: center;
   font-size: 13px;
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .dialog-member-info {
   margin-bottom: 12px;
   padding: 8px 12px;
-  background: #f3f4f6;
+  background: #F2F2F7;
   border-radius: 10px;
   font-size: 14px;
+  color: #1D1D1F;
 }
 
 .dialog-footer {

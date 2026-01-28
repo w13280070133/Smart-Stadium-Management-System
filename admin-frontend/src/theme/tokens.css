@@ -1,0 +1,74 @@
+/* ========== Apple iOS Style Light Theme ========== */
+
+:root {
+  color-scheme: light;
+  
+  /* System Font Stack */
+  --gs-font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+  --gs-font-heading: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+
+  /* Primary Colors - iOS Blue */
+  --gs-color-primary: #007AFF;
+  --gs-color-primary-hover: #0056CC;
+  --gs-color-secondary: #5856D6;
+  
+  /* Semantic Colors */
+  --gs-color-success: #34C759;
+  --gs-color-warning: #FF9500;
+  --gs-color-danger: #FF3B30;
+  --gs-color-info: #5AC8FA;
+  
+  /* Backgrounds - Clean & Minimal */
+  --gs-color-background: #F2F2F7;
+  --gs-color-surface: #FFFFFF;
+  --gs-color-surface-secondary: #F9F9F9;
+  --gs-color-surface-grouped: #F2F2F7;
+  
+  /* Text Colors */
+  --gs-color-text: #1D1D1F;
+  --gs-color-text-secondary: #86868B;
+  --gs-color-text-tertiary: #AEAEB2;
+  --gs-color-text-muted: #C7C7CC;
+  
+  /* Borders */
+  --gs-color-border: #D1D1D6;
+  --gs-color-border-light: #E5E5EA;
+  --gs-color-separator: #C6C6C8;
+  
+  /* Shadows - Subtle & Clean */
+  --gs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --gs-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --gs-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --gs-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  
+  /* Border Radius - iOS Style */
+  --gs-radius-xs: 6px;
+  --gs-radius-sm: 8px;
+  --gs-radius-md: 12px;
+  --gs-radius-lg: 16px;
+  --gs-radius-xl: 20px;
+  --gs-radius-full: 9999px;
+  
+  /* Spacing */
+  --gs-spacing-xs: 4px;
+  --gs-spacing-sm: 8px;
+  --gs-spacing-md: 16px;
+  --gs-spacing-lg: 24px;
+  --gs-spacing-xl: 32px;
+  --gs-spacing-2xl: 48px;
+  
+  /* Transitions */
+  --gs-transition-fast: 0.15s ease;
+  --gs-transition-base: 0.2s ease;
+  --gs-transition-slow: 0.3s ease;
+  
+  /* Font Sizes */
+  --gs-text-xs: 11px;
+  --gs-text-sm: 13px;
+  --gs-text-base: 15px;
+  --gs-text-lg: 17px;
+  --gs-text-xl: 20px;
+  --gs-text-2xl: 24px;
+  --gs-text-3xl: 28px;
+  --gs-text-4xl: 34px;
+}

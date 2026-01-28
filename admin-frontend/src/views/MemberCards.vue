@@ -217,8 +217,8 @@ const openDialog = (row?: CardItem) => {
 
 const loadMembers = async () => {
   try {
-    const res = await http.get("/members");
-    const arr = res.data || [];
+    const res = await http.get("/members", { params: { page_size: 1000 } });
+    const arr = res.data?.items || res.data || [];
     memberOptions.value = arr.map((m: any) => ({
       id: m.id,
       label: `${m.name || "未命名"}（${m.phone || ""}）`,
@@ -339,6 +339,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #F2F2F7;
 }
 .page-header {
   display: flex;
@@ -349,10 +350,11 @@ onMounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 .desc {
   margin: 4px 0 0;
-  color: #6b7280;
+  color: #86868B;
   font-size: 13px;
 }
 .actions {
@@ -361,18 +363,19 @@ onMounted(() => {
   align-items: center;
 }
 .card-panel {
-  border: none;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .member-cell .name {
   font-weight: 600;
+  color: #1D1D1F;
 }
 .member-cell .phone {
-  color: #9ca3af;
+  color: #86868B;
   font-size: 12px;
 }
 .date-range {
-  color: #374151;
+  color: #1D1D1F;
 }
 </style>

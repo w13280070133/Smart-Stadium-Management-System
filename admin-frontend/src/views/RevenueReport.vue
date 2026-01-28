@@ -205,6 +205,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #F2F2F7;
 }
 .page-header {
   display: flex;
@@ -214,38 +215,40 @@ onBeforeUnmount(() => {
 .sub-title {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 .stat-row {
   margin-top: 8px;
 }
 .stat-card {
-  background: linear-gradient(135deg, #ecfeff, #eef2ff);
-  border-radius: 18px;
+  background: #fff;
+  border-radius: 12px;
   padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .stat-card.small {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #fff;
 }
 .stat-card .label {
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 .stat-card .value {
   margin-top: 6px;
   font-size: 22px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
 }
 .stat-card .sub {
   margin-top: 4px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #AEAEB2;
 }
 .chart-card {
   margin-top: 8px;
-  border-radius: 18px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .chart-header {
   display: flex;
@@ -257,11 +260,12 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 .chart-sub {
   margin: 2px 0 0;
   font-size: 12px;
-  color: #9ca3af;
+  color: #86868B;
 }
 .chart-body {
   width: 100%;
@@ -271,6 +275,6 @@ onBeforeUnmount(() => {
   padding: 12px;
   text-align: center;
   font-size: 12px;
-  color: #9ca3af;
+  color: #86868B;
 }
 </style>

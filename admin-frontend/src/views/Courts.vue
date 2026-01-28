@@ -322,6 +322,7 @@ const onStatusCommand = (cmd: string, row: Court) => {
 <style scoped>
 .page {
   padding: 16px 24px 24px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -333,21 +334,24 @@ const onStatusCommand = (cmd: string, row: Court) => {
 
 .page-header h2 {
   margin: 0;
+  color: #1D1D1F;
 }
 
 .sub-title {
   margin: 4px 0 0;
-  color: #909399;
+  color: #86868B;
   font-size: 13px;
 }
 
 .card {
-  border-radius: 16px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .el-dropdown-link {
   cursor: pointer;
-  color: #409eff;
+  color: #FF9500;
   display: inline-flex;
   align-items: center;
 }

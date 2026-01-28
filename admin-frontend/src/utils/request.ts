@@ -7,15 +7,14 @@ const service = axios.create({
   timeout: 10000,
 });
 
-// 请求拦截器（如果你暂时没登录态，也没关系）
+// 请求拦截器：自动携带 Token
 service.interceptors.request.use(
   (config) => {
-    // 这里可以从 localStorage 里取 token 之类
-    // const token = localStorage.getItem("token");
-    // if (token) {
-    //   config.headers = config.headers || {};
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers = config.headers || {};
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

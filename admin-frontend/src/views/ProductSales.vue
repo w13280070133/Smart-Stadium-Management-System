@@ -212,8 +212,9 @@ const loadProducts = async () => {
 
 const loadMembers = async () => {
   try {
-    const res = await http.get<any[]>("/members");
-    memberOptions.value = (res.data || []).map((m: any) => ({
+    const res = await http.get<any>("/members", { params: { page_size: 1000 } });
+    const members = res.data?.items || res.data || [];
+    memberOptions.value = members.map((m: any) => ({
       id: m.id,
       name: m.name,
       phone: m.phone,
@@ -308,26 +309,35 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #F2F2F7;
 }
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+.page-header h2 {
+  color: #1D1D1F;
+}
 .sub-title {
   margin-top: 4px;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 .pos-card {
   border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .table-card {
   border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .pos-title {
   font-weight: 600;
   margin-bottom: 10px;
+  color: #1D1D1F;
 }
 .amount-box {
   display: flex;
@@ -336,14 +346,15 @@ onMounted(() => {
 .amount-main {
   font-size: 22px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 .amount-sub {
-  color: #6b7280;
+  color: #86868B;
   font-size: 12px;
 }
 .pay-tip {
   margin-left: 8px;
-  color: #ea580c;
+  color: #FF9500;
   font-size: 12px;
 }
 .table-header {
@@ -354,17 +365,18 @@ onMounted(() => {
 }
 .table-title {
   font-weight: 600;
+  color: #1D1D1F;
 }
 .empty-text {
   text-align: center;
-  color: #94a3b8;
+  color: #86868B;
   padding: 12px;
 }
 .text-muted {
-  color: #9ca3af;
+  color: #86868B;
 }
 .money {
-  color: #0ea5e9;
+  color: #007AFF;
   font-weight: 600;
 }
 </style>

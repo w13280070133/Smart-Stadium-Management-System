@@ -250,17 +250,20 @@ onMounted(() => {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 
 .sub-title {
   margin-top: 4px;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .card {
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .filter-card {
@@ -284,12 +287,13 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #1D1D1F;
 }
 
 .empty-tip {
   margin-top: 16px;
   text-align: center;
-  color: #9ca3af;
+  color: #86868B;
   font-size: 13px;
 }
 

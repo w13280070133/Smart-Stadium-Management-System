@@ -1,0 +1,863 @@
+<template>
+  <div class="dashboard">
+    <section class="hero glass-panel">
+      <div class="hero-body">
+        <span class="hero-label headline-text">运营脉搏</span>
+        <h1>体育馆运营总览</h1>
+        <p>
+          通过即时预约、营收与会员资产速读，帮助管理团队快速判断当前馆内运营热度与资源利用率。
+        </p>
+        <div class="hero-actions">
+          <el-button type="primary" size="large" class="hero-cta" @click="goReservations">
+            管理预约排期
+          </el-button>
+          <el-button size="large" class="hero-secondary" @click="refreshAll">刷新数据</el-button>
+        </div>
+      </div>
+      <div class="hero-highlights">
+        <div v-for="item in heroHighlights" :key="item.label" class="highlight-card">
+          <span class="label">{{ item.label }}</span>
+          <span class="value headline-text">{{ item.value }}</span>
+          <span class="desc">{{ item.desc }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-grid">
+      <div
+        v-for="card in kpiCards"
+        :key="card.title"
+        class="metric-card glass-panel"
+        :class="card.accent"
+      >
+        <div class="metric-header">
+          <span>{{ card.title }}</span>
+          <el-tag v-if="card.tag" size="small" effect="dark">{{ card.tag }}</el-tag>
+        </div>
+        <div class="metric-value headline-text">{{ card.value }}</div>
+        <p class="metric-sub">{{ card.sub }}</p>
+      </div>
+
+      <div class="metric-card metric-chart glass-panel">
+        <div class="metric-header">
+          <span>营收趋势</span>
+          <el-tag size="small" effect="plain">最近 7 日</el-tag>
+        </div>
+        <VChart v-if="!loadingTransactions" class="chart" :option="revenueTrendOption" autoresize />
+        <div v-else class="chart-skeleton">加载中...</div>
+      </div>
+
+      <div class="metric-card metric-chart glass-panel">
+        <div class="metric-header">
+          <span>预约状态分布</span>
+          <el-tag size="small" effect="plain">最近 5 条</el-tag>
+        </div>
+        <VChart v-if="!loadingReservations" class="chart" :option="reservationStatusOption" autoresize />
+        <div v-else class="chart-skeleton">加载中...</div>
+      </div>
+    </section>
+
+    <section class="insight-grid">
+      <div class="insight-panel glass-panel">
+        <header>
+          <div>
+            <h3 class="headline-text">预约时间线</h3>
+            <p>跟踪最近预约的状态与开场时间</p>
+          </div>
+          <el-button text size="small" @click="goReservations">查看全部</el-button>
+        </header>
+        <ul class="timeline">
+          <li
+            v-for="item in reservationTimeline"
+            :key="item.id"
+            class="timeline-item"
+            :class="item.statusType"
+          >
+            <span class="timeline-time">{{ item.time }}</span>
+            <div class="timeline-main">
+              <strong>{{ item.court }}</strong>
+              <span>{{ item.member }}</span>
+            </div>
+            <span class="timeline-status">{{ item.statusText }}</span>
+          </li>
+          <li v-if="!reservationTimeline.length" class="timeline-empty">暂无预约记录</li>
+        </ul>
+      </div>
+
+      <div class="insight-panel glass-panel">
+        <header>
+          <div>
+            <h3 class="headline-text">收支动态</h3>
+            <p>快速浏览最近资金往来</p>
+          </div>
+          <el-button text size="small" @click="goTransactions">查看全部</el-button>
+        </header>
+        <div class="transactions">
+          <div v-for="item in transactionCards" :key="item.id" class="transaction-row">
+            <div class="transaction-left">
+              <span class="transaction-type" :class="item.typeClass">{{ item.type }}</span>
+              <span class="transaction-member">{{ item.member }}</span>
+            </div>
+            <div class="transaction-right">
+              <span class="transaction-amount" :class="item.amountClass">{{ item.amount }}</span>
+              <span class="transaction-time">{{ item.time }}</span>
+            </div>
+          </div>
+          <div v-if="!transactionCards.length" class="transactions-empty">暂无收支记录</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
+import { storeToRefs } from "pinia";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { LineChart, PieChart } from "echarts/charts";
+import { GridComponent, LegendComponent, TitleComponent, TooltipComponent } from "echarts/components";
+import VChart from "vue-echarts";
+import type { EChartsOption } from "echarts";
+import http from "../utils/http";
+import { useLayoutStore } from "../stores/layout";
+
+use([CanvasRenderer, LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent]);
+
+interface OverviewResp {
+  today_reservations: number;
+  month_reservations: number;
+  today_income: number;
+  month_income: number;
+  member_count: number;
+  member_balance: number;
+}
+
+interface Reservation {
+  id?: string | number;
+  court_name: string;
+  member_name: string | null;
+  start_time: string;
+  status: string;
+}
+
+interface Transaction {
+  id?: string | number;
+  member_name: string;
+  type: string;
+  amount: number;
+  balance_after: number;
+  created_at: string;
+}
+
+const overview = ref<OverviewResp | null>(null);
+const latestReservations = ref<Reservation[]>([]);
+const latestTransactions = ref<Transaction[]>([]);
+const loadingOverview = ref(false);
+const loadingReservations = ref(false);
+const loadingTransactions = ref(false);
+const prefersReducedMotion = ref(false);
+
+const router = useRouter();
+const layoutStore = useLayoutStore();
+const { contrastMode } = storeToRefs(layoutStore);
+
+let motionMedia: MediaQueryList | null = null;
+let motionListener: ((event: MediaQueryListEvent) => void) | null = null;
+
+const formatNumber = (value: unknown) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "0";
+  return Math.round(num).toLocaleString();
+};
+
+const formatCurrency = (value: unknown) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "¥ 0";
+  return `¥ ${Math.round(num).toLocaleString()}`;
+};
+
+const getTokenValue = (name: string, fallback: string) => {
+  if (typeof window === "undefined") return fallback;
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return raw || fallback;
+};
+
+const chartColors = computed(() => {
+  const mode = contrastMode.value;
+  void mode;
+  return {
+    primary: getTokenValue("--gs-color-primary", "#F97316"),
+    secondary: getTokenValue("--gs-color-secondary", "#FB923C"),
+    text: getTokenValue("--gs-color-text", "#F8FAFC"),
+    muted: getTokenValue("--gs-color-text-muted", "rgba(248,250,252,0.65)"),
+    border: getTokenValue("--gs-color-border", "rgba(255,255,255,0.18)"),
+    surface: getTokenValue("--gs-color-surface", "rgba(15,23,42,0.72)"),
+    gradient: getTokenValue("--gs-color-gradient-start", "rgba(59,130,246,0.42)"),
+  };
+});
+
+const heroHighlights = computed(() => [
+  {
+    label: "会员总数",
+    value: formatNumber(overview.value?.member_count),
+    desc: "当前有效会员",
+  },
+  {
+    label: "会员余额",
+    value: formatCurrency(overview.value?.member_balance),
+    desc: "账户余额总额",
+  },
+]);
+
+const kpiCards = computed(() => [
+  {
+    title: "今日预约数",
+    value: formatNumber(overview.value?.today_reservations),
+    sub: loadingOverview.value ? "加载中" : "实时更新中的预约量",
+    accent: "metric--primary",
+    tag: "Live",
+  },
+  {
+    title: "本月预约数",
+    value: formatNumber(overview.value?.month_reservations),
+    sub: "自然月累计预约",
+    accent: "metric--neutral",
+    tag: null,
+  },
+  {
+    title: "今日收入",
+    value: formatCurrency(overview.value?.today_income),
+    sub: "包含场地与商品营收",
+    accent: "metric--income",
+    tag: null,
+  },
+  {
+    title: "本月收入",
+    value: formatCurrency(overview.value?.month_income),
+    sub: "自然月累计营收",
+    accent: "metric--income",
+    tag: null,
+  },
+]);
+
+const reservationTimeline = computed(() => {
+  const statusMeta: Record<string, { text: string; type: "pending" | "ongoing" | "done" | "canceled" }> = {
+    已预约: { text: "待使用", type: "pending" },
+    进行中: { text: "进行中", type: "ongoing" },
+    使用中: { text: "使用中", type: "ongoing" },
+    已完成: { text: "已完成", type: "done" },
+    已取消: { text: "已取消", type: "canceled" },
+  };
+
+  return latestReservations.value.map((item, index) => {
+    const meta = statusMeta[item.status] || { text: item.status || "待确认", type: "pending" };
+    return {
+      id: item.id ?? `${item.court_name}-${item.start_time}-${index}`,
+      time: item.start_time ? item.start_time.replace("T", " ").slice(0, 16) : "时间待定",
+      court: item.court_name,
+      member: item.member_name || "散客",
+      statusText: meta.text,
+      statusType: meta.type,
+    };
+  });
+});
+
+const transactionCards = computed(() => {
+  return latestTransactions.value.slice(0, 7).map((item, index) => {
+    const amount = Number(item.amount) || 0;
+    const isIncome = amount >= 0;
+    return {
+      id: item.id ?? index,
+      type: item.type || (isIncome ? "收入" : "支出"),
+      typeClass: isIncome ? "type-income" : "type-expense",
+      member: item.member_name || "散客",
+      amount: `${isIncome ? "+" : "-"}¥ ${Math.abs(amount).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+      amountClass: isIncome ? "is-income" : "is-expense",
+      time: item.created_at ? item.created_at.replace("T", " ").slice(0, 16) : "时间待定",
+    };
+  });
+});
+
+const revenueTrendData = computed(() => {
+  const map = new Map<string, number>();
+  latestTransactions.value.forEach((item) => {
+    if (!item.created_at) return;
+    const day = item.created_at.slice(0, 10);
+    const amount = Number(item.amount) || 0;
+    map.set(day, (map.get(day) ?? 0) + amount);
+  });
+  return Array.from(map.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-7);
+});
+
+const revenueTrendOption = computed<EChartsOption>(() => {
+  const entries = revenueTrendData.value;
+  const colors = chartColors.value;
+
+  if (!entries.length) {
+    return {
+      title: {
+        text: "暂无营收数据",
+        left: "center",
+        top: "middle",
+        textStyle: {
+          color: colors.muted,
+          fontWeight: 500,
+          fontSize: 14,
+        },
+      },
+    };
+  }
+
+  const gradientColor = {
+    type: "linear",
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: [
+      { offset: 0, color: colors.gradient },
+      { offset: 1, color: "rgba(15,23,42,0)" },
+    ],
+  };
+
+  return {
+    grid: { left: 24, right: 18, top: 24, bottom: 24 },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(15,23,42,0.92)",
+      borderWidth: 0,
+      textStyle: { color: colors.text },
+    },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: entries.map(([day]) => day.slice(5)),
+      axisLabel: { color: colors.muted },
+      axisLine: { lineStyle: { color: colors.border } },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: "value",
+      axisLabel: {
+        color: colors.muted,
+        formatter: (val: number) => `¥ ${Number(val).toFixed(0)}`,
+      },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },
+      axisLine: { show: false },
+    },
+    series: [
+      {
+        type: "line",
+        smooth: true,
+        data: entries.map(([, value]) => Math.round(value * 100) / 100),
+        showSymbol: false,
+        animation: !prefersReducedMotion.value,
+        lineStyle: { width: 2, color: colors.primary },
+        areaStyle: { color: gradientColor },
+      },
+    ],
+  };
+});
+
+const reservationStatusOption = computed<EChartsOption>(() => {
+  const colors = chartColors.value;
+  const map = new Map<string, number>();
+  latestReservations.value.forEach((item) => {
+    map.set(item.status, (map.get(item.status) ?? 0) + 1);
+  });
+  const data = Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+
+  if (!data.length) {
+    return {
+      title: {
+        text: "暂无预约数据",
+        left: "center",
+        top: "middle",
+        textStyle: {
+          color: colors.muted,
+          fontWeight: 500,
+          fontSize: 14,
+        },
+      },
+    };
+  }
+
+  return {
+    tooltip: {
+      trigger: "item",
+      backgroundColor: "rgba(15,23,42,0.92)",
+      borderWidth: 0,
+      textStyle: { color: colors.text },
+    },
+    legend: {
+      bottom: 0,
+      textStyle: { color: colors.muted },
+      icon: "roundRect",
+    },
+    series: [
+      {
+        name: "预约",
+        type: "pie",
+        radius: ["40%", "70%"],
+        center: ["50%", "45%"],
+        data,
+        itemStyle: {
+          borderRadius: 12,
+          borderWidth: 2,
+          borderColor: colors.surface,
+        },
+        label: { color: colors.text },
+        animation: !prefersReducedMotion.value,
+      },
+    ],
+  };
+});
+
+const loadOverview = async () => {
+  loadingOverview.value = true;
+  try {
+    const res = await http.get<OverviewResp>("/reports/overview");
+    overview.value = res.data;
+  } catch (err) {
+    console.error(err);
+    ElMessage.error("获取数据总览失败");
+  } finally {
+    loadingOverview.value = false;
+  }
+};
+
+const loadLatestReservations = async () => {
+  loadingReservations.value = true;
+  try {
+    const res = await http.get<any[]>("/court-reservations");
+    const list = res.data || [];
+    latestReservations.value = list.slice(0, 5);
+  } catch (err) {
+    console.error(err);
+    ElMessage.error("获取预约列表失败");
+  } finally {
+    loadingReservations.value = false;
+  }
+};
+
+const loadLatestTransactions = async () => {
+  loadingTransactions.value = true;
+  try {
+    const res = await http.get<any[]>("/member-transactions");
+    const list = res.data || [];
+    latestTransactions.value = list.slice(0, 12);
+  } catch (err) {
+    console.error(err);
+    ElMessage.error("获取收支记录失败");
+  } finally {
+    loadingTransactions.value = false;
+  }
+};
+
+const refreshAll = () => {
+  loadOverview();
+  loadLatestReservations();
+  loadLatestTransactions();
+};
+
+const goReservations = () => {
+  router.push("/court-reservations");
+};
+
+const goTransactions = () => {
+  router.push("/member-transactions");
+};
+
+onMounted(() => {
+  refreshAll();
+  if (typeof window !== "undefined" && window.matchMedia) {
+    motionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
+    prefersReducedMotion.value = motionMedia.matches;
+    motionListener = (event: MediaQueryListEvent) => {
+      prefersReducedMotion.value = event.matches;
+    };
+    motionMedia.addEventListener("change", motionListener);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (motionMedia && motionListener) {
+    motionMedia.removeEventListener("change", motionListener);
+  }
+});
+</script>
+
+<style scoped>
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-md);
+  padding: var(--gs-spacing-sm) 0 var(--gs-spacing-xl);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: var(--gs-spacing-md);
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto -30%;
+  width: 60%;
+  aspect-ratio: 1 / 1;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.hero-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-sm);
+}
+
+.hero-label {
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--gs-color-text-muted);
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: var(--gs-font-heading);
+  font-size: clamp(30px, 4vw, 44px);
+  letter-spacing: 0.04em;
+}
+
+.hero p {
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--gs-color-text-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gs-spacing-sm);
+  margin-top: var(--gs-spacing-sm);
+}
+
+.hero-cta {
+  padding: 0 28px;
+  border-radius: var(--gs-radius-sm);
+  box-shadow: 0 18px 40px rgba(249, 115, 22, 0.55);
+}
+
+.hero-secondary {
+  border-radius: var(--gs-radius-sm);
+  border: 1px solid var(--gs-color-border);
+  color: var(--gs-color-text);
+}
+
+.hero-highlights {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--gs-spacing-sm);
+}
+
+.highlight-card {
+  padding: var(--gs-spacing-md);
+  border-radius: var(--gs-radius-md);
+  background: color-mix(in srgb, var(--gs-color-surface) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gs-color-border) 90%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.highlight-card .label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--gs-color-text-muted);
+}
+
+.highlight-card .value {
+  font-size: 26px;
+}
+
+.highlight-card .desc {
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--gs-spacing-md);
+}
+
+.metric-card {
+  position: relative;
+  padding: var(--gs-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-sm);
+  min-height: 170px;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--gs-color-text-muted);
+}
+
+.metric-value {
+  font-size: clamp(28px, 3vw, 36px);
+}
+
+.metric-sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.metric--primary {
+  background: linear-gradient(160deg, rgba(249, 115, 22, 0.32), transparent 70%);
+}
+
+.metric--neutral {
+  background: linear-gradient(160deg, rgba(59, 130, 246, 0.26), transparent 70%);
+}
+
+.metric--income {
+  background: linear-gradient(160deg, rgba(34, 197, 94, 0.26), transparent 70%);
+}
+
+.metric-chart {
+  min-height: 240px;
+  grid-column: span 2;
+}
+
+.chart {
+  width: 100%;
+  height: 200px;
+}
+
+.chart-skeleton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gs-color-text-muted);
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--gs-spacing-md);
+}
+
+.insight-panel {
+  padding: var(--gs-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-md);
+}
+
+.insight-panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--gs-spacing-sm);
+}
+
+.insight-panel header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.insight-panel header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-sm);
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 80px;
+  gap: var(--gs-spacing-sm);
+  align-items: center;
+  padding: var(--gs-spacing-xs) var(--gs-spacing-sm);
+  border: 1px solid color-mix(in srgb, var(--gs-color-border) 85%, transparent);
+  border-radius: var(--gs-radius-sm);
+  background: color-mix(in srgb, var(--gs-color-surface) 92%, transparent);
+}
+
+.timeline-item.pending {
+  border-color: color-mix(in srgb, var(--gs-color-secondary) 38%, transparent);
+}
+
+.timeline-item.ongoing {
+  border-color: color-mix(in srgb, var(--gs-color-cta) 42%, transparent);
+}
+
+.timeline-item.done {
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.timeline-item.canceled {
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.timeline-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-main strong {
+  font-size: 14px;
+}
+
+.timeline-main span {
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.timeline-status {
+  font-size: 12px;
+  text-align: right;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 24px 0;
+  font-size: 13px;
+  color: var(--gs-color-text-muted);
+}
+
+.transactions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gs-spacing-xs);
+}
+
+.transaction-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--gs-spacing-xs) var(--gs-spacing-sm);
+  border-radius: var(--gs-radius-sm);
+  background: color-mix(in srgb, var(--gs-color-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gs-color-border) 85%, transparent);
+}
+
+.transaction-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transaction-type {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.transaction-type.type-income {
+  color: var(--gs-color-cta);
+}
+
+.transaction-type.type-expense {
+  color: #f87171;
+}
+
+.transaction-member {
+  font-size: 13px;
+  color: var(--gs-color-text-muted);
+}
+
+.transaction-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+.transaction-amount {
+  font-weight: 600;
+}
+
+.transaction-amount.is-income {
+  color: var(--gs-color-cta);
+}
+
+.transaction-amount.is-expense {
+  color: #f87171;
+}
+
+.transaction-time {
+  font-size: 12px;
+  color: var(--gs-color-text-muted);
+}
+
+.transactions-empty {
+  text-align: center;
+  padding: 28px 0;
+  font-size: 13px;
+  color: var(--gs-color-text-muted);
+}
+
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-chart {
+    grid-column: span 1;
+  }
+
+  .timeline-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    text-align: left;
+  }
+
+  .timeline-status {
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-panel:hover {
+    transform: none;
+    box-shadow: var(--gs-shadow-soft);
+  }
+}
+</style>

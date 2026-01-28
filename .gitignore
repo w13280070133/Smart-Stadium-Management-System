@@ -2,7 +2,12 @@
 __pycache__/
 *.py[cod]
 .venv/
+venv/
 env/
+
+# 环境变量文件
+.env
+.env.local
 
 # Node.js 依赖
 node_modules/

@@ -56,31 +56,75 @@ def normalize_member(row: Dict[str, Any], level_config: Dict[str, Any] | None = 
     return result
 
 
-@router.get("", response_model=List[Dict[str, Any]])
-def list_members():
+@router.get("", response_model=Dict[str, Any])
+def list_members(
+    page: int = 1,
+    page_size: int = 20,
+    keyword: str = None,
+    status: str = None,
+):
+    """
+    获取会员列表（分页）
+    
+    Args:
+        page: 页码，默认第1页
+        page_size: 每页数量，默认20，最大100
+        keyword: 搜索关键字（姓名或手机号）
+        status: 状态筛选（正常/禁用/注销）
+        
+    Returns:
+        {"total": 总数, "items": 会员列表}
+    """
+    # 参数验证
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 20
+    if page_size > 100:
+        page_size = 100
+    
+    offset = (page - 1) * page_size
+    
     db = get_db()
     cursor = db.cursor(dictionary=True)
     try:
-        cursor.execute(
-            """
-            SELECT id,
-                   name,
-                   phone,
-                   gender,
-                   birthday,
-                   level,
-                   status,
-                   remark,
-                   balance,
-                   total_spent,
-                   created_at
+        # 构建 WHERE 条件
+        where_clauses = []
+        params = []
+        
+        if keyword:
+            where_clauses.append("(name LIKE %s OR phone LIKE %s)")
+            kw = f"%{keyword}%"
+            params.extend([kw, kw])
+        
+        if status:
+            where_clauses.append("status = %s")
+            params.append(status)
+        
+        where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        
+        # 查询总数
+        count_sql = f"SELECT COUNT(*) AS cnt FROM members {where_sql}"
+        cursor.execute(count_sql, params)
+        total = cursor.fetchone()["cnt"]
+        
+        # 查询分页数据
+        data_sql = f"""
+            SELECT id, name, phone, gender, birthday, level, status,
+                   remark, balance, total_spent, created_at
             FROM members
+            {where_sql}
             ORDER BY id DESC
-            """
-        )
+            LIMIT %s OFFSET %s
+        """
+        params.extend([page_size, offset])
+        cursor.execute(data_sql, params)
         rows = cursor.fetchall()
+        
         config = load_member_config(cursor)
-        return [normalize_member(r, config) for r in rows]
+        items = [normalize_member(r, config) for r in rows]
+        
+        return {"total": total, "items": items}
     finally:
         cursor.close()
         db.close()
@@ -404,7 +448,10 @@ def delete_member(member_id: int, current_user=Depends(require_action("member.de
         raise
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"删除失败: {str(e)}")
+        # 记录详细错误日志，但对前端返回模糊化提示
+        import logging
+        logging.error(f"删除会员 {member_id} 失败: {str(e)}")
+        raise HTTPException(status_code=500, detail="删除失败，请联系管理员")
     finally:
         cursor.close()
         db.close()
@@ -445,13 +492,16 @@ def set_member_login_password(
 @router.post("/{member_id}/reset-password")
 def admin_reset_member_password(
     member_id: int,
-    db=Depends(get_db),
 ):
     """
     管理员重置会员登录密码：
     - 默认重置为 123456
     - 自动识别 members 表中实际使用的密码字段（password / login_password_hash）
     """
+    # 安全：密码列白名单，防止 SQL 注入
+    ALLOWED_PASSWORD_COLUMNS = {"login_password_hash", "password"}
+    
+    db = get_db()
     cursor = db.cursor(dictionary=True)
     try:
         # 1. 确认会员存在
@@ -463,12 +513,12 @@ def admin_reset_member_password(
         if not row:
             raise HTTPException(status_code=404, detail="会员不存在")
 
-        # 2. 判断密码列名
+        # 2. 判断密码列名（使用白名单验证）
         password_column = None
-        if "login_password_hash" in row:
-            password_column = "login_password_hash"
-        elif "password" in row:
-            password_column = "password"
+        for col in ALLOWED_PASSWORD_COLUMNS:
+            if col in row:
+                password_column = col
+                break
 
         if not password_column:
             raise HTTPException(
@@ -480,10 +530,9 @@ def admin_reset_member_password(
         new_plain = "123456"
         new_hash = get_password_hash(new_plain)
 
-        cursor.execute(
-            f"UPDATE members SET {password_column} = %s WHERE id = %s",
-            (new_hash, member_id),
-        )
+        # 使用安全的参数化查询（列名已经通过白名单验证）
+        sql = f"UPDATE members SET {password_column} = %s WHERE id = %s"
+        cursor.execute(sql, (new_hash, member_id))
         db.commit()
 
         return {
@@ -492,3 +541,4 @@ def admin_reset_member_password(
         }
     finally:
         cursor.close()
+        db.close()  # 确保连接正确关闭/归还到连接池

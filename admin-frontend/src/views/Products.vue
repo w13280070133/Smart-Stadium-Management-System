@@ -392,6 +392,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -403,7 +404,7 @@ onMounted(() => {
 .sub-title {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .stat-row {
@@ -411,26 +412,29 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #eef2ff, #eff6ff);
-  border-radius: 18px;
+  background: #fff;
+  border-radius: 12px;
   padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .stat-card .label {
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .stat-card .value {
   margin-top: 6px;
   font-size: 22px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
 }
 
 .filter-card,
 .table-card {
-  border-radius: 18px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .filter-row {
@@ -443,7 +447,7 @@ onMounted(() => {
   padding: 16px;
   text-align: center;
   font-size: 13px;
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .dialog-footer {

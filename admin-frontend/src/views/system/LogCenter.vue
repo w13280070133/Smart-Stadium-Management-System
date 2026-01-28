@@ -232,10 +232,13 @@ loadLogs();
   justify-content: space-between;
   align-items: center;
 }
+.page-header h2 {
+  color: #1D1D1F;
+}
 .sub-title {
   margin-top: 4px;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 .header-actions {
   display: flex;
@@ -243,10 +246,13 @@ loadLogs();
   gap: 8px;
 }
 .card {
-  border-radius: 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .filter-card {
-  border-radius: 16px;
+  border-radius: 12px;
 }
 .filter-row {
   display: flex;
@@ -263,23 +269,25 @@ loadLogs();
   margin-bottom: 6px;
 }
 .log-content {
-  border: 1px solid #eef2ff;
+  border: none;
   border-radius: 12px;
   padding: 12px;
-  background: #f8fbff;
+  background: #F5F5F7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .log-main {
   font-weight: 600;
   margin-bottom: 6px;
+  color: #1D1D1F;
 }
 .log-user {
-  color: #2563eb;
+  color: #007AFF;
 }
 .log-target {
-  color: #f97316;
+  color: #FF9500;
 }
 .log-detail {
-  color: #344054;
+  color: #1D1D1F;
   font-size: 13px;
   margin-bottom: 6px;
 }
@@ -287,12 +295,12 @@ loadLogs();
   display: flex;
   gap: 12px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #86868B;
 }
 .empty-tip {
   text-align: center;
   padding: 16px;
-  color: #9ca3af;
+  color: #86868B;
 }
 .pagination {
   display: flex;

@@ -538,3 +538,6 @@ def update_attendance(
         db.close()
 
 
+
+
+

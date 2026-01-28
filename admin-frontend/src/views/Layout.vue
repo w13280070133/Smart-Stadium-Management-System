@@ -359,201 +359,274 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 样式原样保留 */
+/* ========== Apple iOS 风格浅色主题 ========== */
 .admin-layout {
-  height: 100vh;
+  min-height: 100vh;
+  background: var(--gs-color-background);
+  color: var(--gs-color-text);
 }
+
+/* ========== 顶部导航栏 ========== */
 .admin-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  border-bottom: 1px solid #ebeef5;
-  background-color: #ffffff;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--gs-color-border);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
+
 .logo-area {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
+
 .logo-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--gs-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  margin-right: 12px;
-  font-size: 20px;
-}
-.title-block .system-name {
+  color: #fff;
   font-size: 18px;
-  font-weight: 600;
 }
+
+.title-block .system-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--gs-color-text);
+  letter-spacing: -0.02em;
+}
+
 .title-block .system-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--gs-color-text-secondary);
+  margin-top: 2px;
 }
+
+/* ========== 用户区域 ========== */
 .user-area {
   display: flex;
   align-items: center;
+  gap: 16px;
   font-size: 14px;
-  color: #606266;
-  gap: 12px;
+  color: var(--gs-color-text-secondary);
 }
+
 .role-label {
   font-size: 12px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
-}
-.user-name {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--gs-color-background);
+  color: var(--gs-color-text-secondary);
   font-weight: 500;
 }
+
+.user-name {
+  font-weight: 600;
+  color: var(--gs-color-text);
+}
+
 .action-link {
   cursor: pointer;
-  font-size: 13px;
-  color: #409eff;
+  font-size: 14px;
+  color: var(--gs-color-primary);
+  transition: opacity 0.2s;
 }
+
+.action-link:hover {
+  opacity: 0.7;
+}
+
+/* ========== 通知按钮 ========== */
 .notif-entry {
   position: relative;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  color: #4b5563;
-  transition: all 0.2s;
+  color: var(--gs-color-text-secondary);
+  cursor: pointer;
+  transition: background 0.2s;
 }
+
 .notif-entry:hover {
-  background: rgba(59, 130, 246, 0.08);
-  color: #2563eb;
+  background: var(--gs-color-background);
+  color: var(--gs-color-text);
 }
+
 .notif-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  background: #f43f5e;
+  top: 0;
+  right: 0;
+  background: var(--gs-color-danger);
   color: #fff;
-  border-radius: 999px;
-  padding: 0 6px;
+  border-radius: 10px;
+  padding: 0 5px;
   font-size: 11px;
   font-weight: 600;
-  min-width: 18px;
-  height: 18px;
+  min-width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* ========== 通知弹出框 ========== */
 .notif-popover {
-  max-height: 480px;
+  max-height: 400px;
   overflow: auto;
 }
+
 .notif-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 12px;
   margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--gs-color-border);
 }
+
 .notif-header-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--gs-color-text);
 }
+
 .notif-header-actions {
   display: flex;
-  gap: 4px;
+  gap: 8px;
 }
+
 .notif-empty {
   text-align: center;
-  color: #9ca3af;
-  padding: 24px 0;
-  font-size: 13px;
+  color: var(--gs-color-text-secondary);
+  padding: 32px 0;
+  font-size: 14px;
 }
+
 .notif-items {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .notif-item {
-  border: 1px solid #e5e7eb;
+  padding: 12px;
   border-radius: 10px;
-  padding: 10px 12px;
-  background: #fafafa;
+  background: var(--gs-color-background);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
+
 .notif-item:hover {
-  background: #f0f9ff;
-  border-color: #bae6fd;
-  transform: translateX(2px);
+  background: #E5E5EA;
 }
+
 .notif-item.notif-unread {
-  background: #fffbeb;
-  border-color: #fcd34d;
+  background: rgba(0, 122, 255, 0.08);
 }
+
 .notif-item.notif-unread:hover {
-  background: #fef3c7;
+  background: rgba(0, 122, 255, 0.12);
 }
+
 .notif-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
+  color: var(--gs-color-text);
 }
+
 .notif-text {
-  color: #111827;
   flex: 1;
 }
+
 .unread-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #f43f5e;
-  margin-left: 6px;
+  background: var(--gs-color-primary);
   flex-shrink: 0;
 }
+
 .notif-content {
-  color: #4b5563;
-  font-size: 12px;
+  color: var(--gs-color-text-secondary);
+  font-size: 13px;
   margin-top: 6px;
   line-height: 1.5;
 }
+
 .notif-time {
-  color: #9ca3af;
-  font-size: 11px;
+  color: var(--gs-color-text-tertiary);
+  font-size: 12px;
   margin-top: 6px;
 }
+
+/* ========== 侧边栏 ========== */
 .admin-sider {
-  background-color: #f8fafc;
-  border-right: 1px solid #ebeef5;
+  background: #fff;
+  border-right: 1px solid var(--gs-color-border);
 }
+
 .admin-menu {
   border-right: none;
+  padding: 8px 0;
+  background: transparent;
 }
+
 .admin-menu :deep(.el-sub-menu__title) {
-  height: 42px;
-  line-height: 42px;
+  height: 44px;
+  line-height: 44px;
   font-size: 13px;
+  font-weight: 600;
+  color: var(--gs-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
+
 .admin-menu :deep(.el-menu-item) {
   height: 40px;
   line-height: 40px;
-  font-size: 13px;
+  font-size: 14px;
+  border-radius: 8px;
+  margin: 2px 8px;
+  color: var(--gs-color-text);
+  transition: background 0.2s;
 }
+
+.admin-menu :deep(.el-menu-item:hover) {
+  background: var(--gs-color-background);
+}
+
+.admin-menu :deep(.el-menu-item.is-active) {
+  background: var(--gs-color-primary);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ========== 主内容区 ========== */
 .admin-main {
-  padding: 16px 20px 24px;
-  background-color: #f5f7fb;
+  padding: 24px;
+  background: var(--gs-color-background);
+  min-height: calc(100vh - 64px);
 }
+
 .page-wrapper {
-  min-height: calc(100vh - 60px);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 </style>

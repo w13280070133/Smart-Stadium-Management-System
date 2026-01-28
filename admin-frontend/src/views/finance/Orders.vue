@@ -481,14 +481,19 @@ loadOrderSettings();
   align-items: center;
   margin-bottom: 12px;
 }
+.page-header h2 {
+  color: #1D1D1F;
+}
 .sub-title {
   margin-top: 4px;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 .card {
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .filters {
   display: flex;
@@ -498,7 +503,7 @@ loadOrderSettings();
   margin-bottom: 12px;
 }
 .summary {
-  color: #6b7280;
+  color: #86868B;
 }
 .pagination {
   margin-top: 12px;
@@ -506,7 +511,7 @@ loadOrderSettings();
 }
 .empty-tip {
   text-align: center;
-  color: #94a3b8;
+  color: #86868B;
   padding: 28px 0;
 }
 .disabled-row {
@@ -516,6 +521,8 @@ loadOrderSettings();
 .order-settings-alert {
   margin-bottom: 12px;
   border-radius: 12px;
+  background: #F5F5F7;
+  border: none;
 }
 
 .order-settings-wrapper {
@@ -526,7 +533,7 @@ loadOrderSettings();
 
 .order-settings-title {
   font-weight: 600;
-  color: #0f172a;
+  color: #1D1D1F;
   font-size: 13px;
 }
 

@@ -282,6 +282,7 @@ watch(activeCourtId, () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: #F2F2F7;
 }
 
 .page-header {
@@ -294,12 +295,13 @@ watch(activeCourtId, () => {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 
 .sub-title {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .header-actions {
@@ -313,8 +315,9 @@ watch(activeCourtId, () => {
 
 .calendar-card,
 .detail-card {
-  border-radius: 20px;
-  border: none;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* 日历单元格样式 */
@@ -327,16 +330,16 @@ watch(activeCourtId, () => {
 }
 
 .date-cell:hover {
-  background-color: #f3f4ff;
+  background-color: rgba(0, 122, 255, 0.08);
 }
 
 .date-cell.is-selected {
-  background-color: #e0ebff;
-  box-shadow: 0 0 0 1px #3b82f6 inset;
+  background-color: rgba(0, 122, 255, 0.15);
+  box-shadow: 0 0 0 1px #007AFF inset;
 }
 
 .date-cell.has-reservation:not(.is-selected) {
-  background-color: #f5f9ff;
+  background-color: rgba(0, 122, 255, 0.06);
 }
 
 .date-header {
@@ -348,13 +351,14 @@ watch(activeCourtId, () => {
 .day-number {
   font-size: 14px;
   font-weight: 500;
+  color: #1D1D1F;
 }
 
 .badge {
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 999px;
-  background-color: #3b82f6;
+  background-color: #FF9500;
   color: #fff;
 }
 
@@ -362,14 +366,14 @@ watch(activeCourtId, () => {
   margin-top: 6px;
   height: 6px;
   border-radius: 999px;
-  background-color: #e5e7eb;
+  background-color: #E5E5EA;
   overflow: hidden;
 }
 
 .mini-bar .fill {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #22c55e);
+  background: linear-gradient(90deg, #FF9500, #34C759);
 }
 
 .detail-header {
@@ -384,28 +388,29 @@ watch(activeCourtId, () => {
 
 .detail-title .label {
   font-size: 13px;
-  color: #6b7280;
+  color: #86868B;
 }
 
 .detail-title .value {
   font-size: 16px;
   font-weight: 600;
+  color: #1D1D1F;
 }
 
 .detail-sub {
   margin-top: 2px;
   font-size: 12px;
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .empty-text {
   padding: 16px;
   text-align: center;
   font-size: 13px;
-  color: #9ca3af;
+  color: #86868B;
 }
 
 .text-muted {
-  color: #9ca3af;
+  color: #86868B;
 }
 </style>

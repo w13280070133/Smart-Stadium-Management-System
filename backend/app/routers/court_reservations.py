@@ -31,14 +31,37 @@ def _parse_dt(val: str, field_name: str) -> datetime:
         )
 
 
+# 场地表结构缓存（避免频繁执行 SHOW COLUMNS）
+_courts_columns_cache: set = None
+_courts_columns_cache_ts: float = 0
+COLUMNS_CACHE_TTL = 300  # 缓存时间 5 分钟
+
+
+def _get_courts_columns(cursor) -> set:
+    """获取 courts 表的列名（带缓存）"""
+    global _courts_columns_cache, _courts_columns_cache_ts
+    import time
+    now = time.time()
+    
+    if _courts_columns_cache is not None and now - _courts_columns_cache_ts < COLUMNS_CACHE_TTL:
+        return _courts_columns_cache
+    
+    cursor.execute("SHOW COLUMNS FROM courts")
+    rows = cursor.fetchall()
+    if rows and isinstance(rows[0], dict):
+        _courts_columns_cache = {r["Field"] for r in rows}
+    else:
+        _courts_columns_cache = {r[0] for r in rows}
+    _courts_columns_cache_ts = now
+    return _courts_columns_cache
+
+
 def _get_court_price(cursor, court_id: int) -> float:
-    """获取场地价格，优先 price_per_hour，否则 price"""
-    cursor.execute("SHOW COLUMNS FROM courts LIKE 'price_per_hour'")
-    has_price_per_hour = cursor.fetchone() is not None
-
-    cursor.execute("SHOW COLUMNS FROM courts LIKE 'price'")
-    has_price = cursor.fetchone() is not None
-
+    """获取场地价格，优先 price_per_hour，否则 price（使用缓存优化）"""
+    cols = _get_courts_columns(cursor)
+    has_price_per_hour = "price_per_hour" in cols
+    has_price = "price" in cols
+    
     if has_price_per_hour and has_price:
         cursor.execute("SELECT price_per_hour, price FROM courts WHERE id = %s", (court_id,))
     elif has_price_per_hour:

@@ -1,13 +1,14 @@
+/* ========== Apple iOS Style - Global Styles ========== */
+
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", sans-serif;
+  font-family: var(--gs-font-body);
   line-height: 1.5;
   font-weight: 400;
-  color: #111827;
-  background-color: #f5f5f7;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 去掉默认边距 */
 * {
   box-sizing: border-box;
 }
@@ -15,6 +16,8 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: #F2F2F7;
+  color: #1D1D1F;
 }
 
 a {
@@ -22,7 +25,97 @@ a {
   text-decoration: none;
 }
 
-/* Element Plus 微调：按钮圆角稍大一点，更接近 Apple 风格 */
-.el-button {
-  border-radius: 999px;
+a:hover {
+  color: #007AFF;
 }
+
+/* ========== App Shell ========== */
+.app-shell {
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ========== Clean Card (Apple Style) ========== */
+.clean-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.clean-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ========== Utility Classes ========== */
+[class*="cursor-pointer"],
+button,
+.el-button,
+.el-menu-item,
+.el-dropdown-link,
+.el-tag,
+.clickable {
+  cursor: pointer;
+}
+
+.text-muted {
+  color: #86868B;
+}
+
+.text-primary {
+  color: #007AFF;
+}
+
+.text-success {
+  color: #34C759;
+}
+
+.text-warning {
+  color: #FF9500;
+}
+
+.text-danger {
+  color: #FF3B30;
+}
+
+/* ========== Typography ========== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--gs-font-heading);
+  font-weight: 600;
+  color: #1D1D1F;
+  margin: 0;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #86868B;
+}
+
+/* ========== Responsive Grid Fix ========== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

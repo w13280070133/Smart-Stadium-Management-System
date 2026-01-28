@@ -498,8 +498,28 @@ const filteredMembers = computed(() => {
 const loadMembers = async () => {
   loading.value = true;
   try {
-    const res = await http.get<Member[]>("/members");
-    members.value = res.data || [];
+    // 后端现在返回分页格式 { total, items }
+    const res = await http.get<{ total: number; items: Member[] } | Member[]>("/members", {
+      params: {
+        page: 1,
+        page_size: 1000, // 获取所有数据（前端筛选）
+        keyword: keyword.value || undefined,
+        status: statusFilter.value || undefined,
+      },
+    });
+    
+    // 兼容新旧API格式
+    const data = res.data;
+    if (Array.isArray(data)) {
+      // 旧格式：直接返回数组
+      members.value = data;
+    } else if (data && typeof data === 'object' && 'items' in data) {
+      // 新格式：{ total, items }
+      members.value = data.items || [];
+    } else {
+      members.value = [];
+    }
+    
     const totalMembers = members.value.length;
     const totalBalance = members.value.reduce(
       (sum, m) => sum + Number(m.balance || 0),
@@ -796,69 +816,81 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ========== Apple iOS 风格浅色主题 ========== */
 .members-page {
-  padding: 16px 24px 24px;
+  padding: 0;
 }
 
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1D1D1F;
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .sub-title {
   margin: 4px 0 0;
-  color: #909399;
-  font-size: 13px;
+  color: #86868B;
+  font-size: 14px;
 }
 
 .stat-row {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #f5f7ff, #ffffff);
-  border-radius: 18px;
-  padding: 16px 18px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-  border: 1px solid #eef2ff;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .stat-label {
   font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 6px;
+  color: #86868B;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
-  color: #111827;
+  color: #1D1D1F;
   margin-bottom: 4px;
+  letter-spacing: -0.02em;
 }
 
 .stat-sub {
   font-size: 12px;
-  color: #9ca3af;
+  color: #AEAEB2;
 }
 
 .card {
-  margin-top: 4px;
-  border-radius: 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .table-toolbar {
   display: flex;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .empty-text {
-  padding: 16px;
+  padding: 24px;
   text-align: center;
-  font-size: 13px;
-  color: #9ca3af;
+  font-size: 14px;
+  color: #86868B;
 }
 
 .dialog-footer {
@@ -869,34 +901,35 @@ onMounted(async () => {
 
 .recharge-header,
 .password-header {
-  margin-bottom: 12px;
-  font-size: 13px;
-  color: #606266;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #1D1D1F;
 }
 
 .recharge-header .name-line,
 .password-header .name-line {
   margin-bottom: 4px;
+  font-weight: 500;
 }
 
 .recharge-header .phone,
 .password-header .phone {
-  color: #909399;
+  color: #86868B;
 }
 
 .recharge-header .balance-line .money {
-  color: #f56c6c;
+  color: #007AFF;
   font-weight: 600;
 }
 
 .amount-tip {
   margin-left: 8px;
   font-size: 12px;
-  color: #909399;
+  color: #86868B;
 }
 
 .money {
-  color: #111827;
+  color: #1D1D1F;
   font-weight: 600;
 }
 </style>

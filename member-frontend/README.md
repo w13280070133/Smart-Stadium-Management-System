@@ -1,5 +1,57 @@
-# Vue 3 + TypeScript + Vite
+# 会员端前端 (Member Frontend)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+健身房管理系统的会员端应用，基于 Vue 3 + TypeScript + Element Plus 构建。
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 技术栈
+
+- Vue 3.4 + Composition API
+- TypeScript 5
+- Vite 5
+- Element Plus 2
+- Vue Router 4
+
+## 开发启动
+
+```bash
+npm install
+npm run dev
+```
+
+访问 http://localhost:5175
+
+## 构建部署
+
+```bash
+npm run build
+```
+
+构建产物在 `dist/` 目录
+
+## 主要页面
+
+| 路由 | 页面 | 说明 |
+|------|------|------|
+| / | Home | 首页 |
+| /reservations | Reservations | 场地预约 |
+| /orders | MyOrders | 我的订单 |
+| /courses | Courses | 课程列表 |
+| /my-courses | MyCourses | 我的课程 |
+| /center | Center | 个人中心 |
+
+## 特色功能
+
+- 🤖 AI 智能助手：右下角悬浮聊天窗口，支持自然语言查询场地、预约等
+- 📅 可视化预约：直观的时间段选择界面
+- 💳 会员余额支付：自动应用会员折扣
+
+## 目录结构
+
+```
+src/
+├── views/          # 页面组件
+├── components/     # 公共组件
+│   └── ChatWidget.vue  # AI 聊天组件
+├── router/         # 路由配置
+├── utils/          # 工具函数
+└── App.vue         # 根组件
+```

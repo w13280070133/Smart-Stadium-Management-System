@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Dict, Any, Tuple
+import random
 
 from ..database import get_db
 
@@ -46,12 +47,16 @@ def _get_order_prefix_and_currency() -> Tuple[str, str]:
 
 
 def generate_order_no(order_type: str) -> str:
-    """生成订单号：前缀 + 类型首字母 + 时间戳"""
+    """生成订单号：前缀 + 类型首字母 + 时间戳 + 随机数
+    
+    使用完整微秒时间戳 + 4位随机数，确保高并发下的唯一性
+    """
     prefix, _ = _get_order_prefix_and_currency()
     now = datetime.now()
-    ts = now.strftime("%Y%m%d%H%M%S%f")[:-3]
+    ts = now.strftime("%Y%m%d%H%M%S%f")  # 完整微秒精度
     type_code = order_type[:1].upper()
-    return f"{prefix}-{type_code}-{ts}"
+    rand = random.randint(1000, 9999)  # 4位随机数，进一步降低冲突
+    return f"{prefix}-{type_code}-{ts}{rand}"
 
 
 def create_court_order(
