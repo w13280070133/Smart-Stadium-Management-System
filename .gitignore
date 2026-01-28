@@ -1,24 +1,26 @@
-# Python 缓存
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
 .venv/
 venv/
 env/
-
-# 环境变量文件
+*.egg-info/
 .env
-.env.local
 
-# Node.js 依赖
+# Node.js
 node_modules/
 dist/
 
-# Java/IDE 配置文件
+# IDE
 .idea/
 .vscode/
 *.class
 target/
 
-# 操作系统临时文件
+# OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
